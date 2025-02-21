@@ -1,0 +1,51 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    anaf.cif: 17261221 # S.C. Valitex S.R.L.
+    aws.s3_bucket: '%env(AWS_S3_BUCKET)%'
+    einvoice.file_dir: '%kernel.project_dir%/var/einvoice'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # anaf/oauth2
+    Anaf\OAuth2\Client\Provider\AnafProvider:
+        arguments:
+            $clientId: '%env(ANAF_OAUTH2_CLIENT_ID)%'
+            $clientSecret: '%env(ANAF_OAUTH2_CLIENT_SECRET)%'
+            $redirectUri: '%env(ANAF_OAUTH2_REDIRECT_URL)%'
+
+    # anaf/efactura
+    Anaf\Resources\Efactura:
+        factory: '@App\Factory\EfacturaFactory'
+
+    # aws/s3
+    Aws\Credentials\Credentials:
+        arguments:
+            $key: '%env(AWS_KEY)%'
+            $secret: '%env(AWS_SECRET)%'
+    Aws\S3\S3Client:
+        arguments:
+            $args:
+                region: auto
+                endpoint: '%env(AWS_S3_ENDPOINT)%'
+                version: latest
+                credentials: '@Aws\Credentials\Credentials'

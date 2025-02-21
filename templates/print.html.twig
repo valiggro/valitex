@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% endblock %}
+
+{% block stylesheets %}
+	<style>
+		@media print {
+			body {
+				font-size: 12px;
+				color: #000;
+				line-height: 16px;
+			}
+			table,
+			tr,
+			th,
+			td {
+				border-color: #000;
+				line-height: 14px;
+			}
+		}
+	</style>
+{% endblock %}
+
+{% block javascripts %}
+	<script>
+		window.print();
+		window.onafterprint = function () {
+			window.location = '{{ (app.request.query.get('redirect') ?: path('app_einvoice_index'))|raw }}';
+		}
+	</script>
+{% endblock %}
+
+{% block body %}{% endblock %}

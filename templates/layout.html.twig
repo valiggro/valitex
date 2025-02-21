@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+		<div class="container">
+			<a class="navbar-brand" href="/">Valitex</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbar">
+				<ul class="navbar-nav ms-auto">
+					<li class="nav-item">
+						<a class="nav-link{% if app.request.pathinfo  == path('app_setting_index') %} active{% endif %}" href="{{ path('app_setting_index') }}">
+							<i class="bi bi-gear-fill"></i>
+							Setări
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link{% if app.request.pathinfo  == path('app_einvoice_index') %} active{% endif %}" href="{{ path('app_einvoice_index') }}">
+							<i class="bi bi-file-earmark-medical"></i>
+							eFactură
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container">
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }} mt-3">
+					{{ message }}
+				</div>
+			{% endfor %}
+		{% endfor %}
+		{% block content %}{% endblock %}
+	</div>
+{% endblock %}

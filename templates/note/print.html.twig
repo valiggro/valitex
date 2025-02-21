@@ -1,0 +1,161 @@
+{% extends 'print.html.twig' %}
+
+{% block title %}
+	{{ simpleXml.AccountingSupplierParty.Party.PartyLegalEntity.RegistrationName }}
+{% endblock %}
+
+{% block body %}
+	Unitatea S.C. VALITEX S.R.L.
+	<div class="text-center">
+		<h5 class="mb-0">
+			Nota de intrare receptie nr.
+			{{ einvoice.noteNumber }}
+		</h5>
+		<div>
+			Data:
+			{{ simpleXml.IssueDate }}
+		</div>
+	</div>
+	<div class="mt-2">
+		Se receptioneaza marfurile furnizate de S.C.
+		{{ simpleXml.AccountingSupplierParty.Party.PartyLegalEntity.RegistrationName }}
+		din localitatea
+		{{ simpleXml.AccountingSupplierParty.Party.PostalAddress.CityName }}
+		cu auto (vagon) nr .......... conform avizului de expeditie nr .......... din data de
+		{{ simpleXml.IssueDate }}
+		astfel:
+	</div>
+	<table class="table table-bordered table-sm">
+		<tr class="align-middle text-center">
+			<th rowspan="3">Nr.<br>crt.</th>
+			<th rowspan="3">Denumire produs</th>
+			<th rowspan="3">U<br>/<br>M</th>
+			<th rowspan="3">Cant.</th>
+			<th colspan="5">Furnizor</th>
+			<th colspan="2">Adaos<br>comercial</th>
+			<th rowspan="3">Pret unit.<br>cu<br>amanuntul<br>fara TVA</th>
+			<th rowspan="3">TVA<br>aferent<br>adao<br>comercial</th>
+			<th rowspan="3">Pret unit.<br>cu<br>amanuntul<br>cu TVA</th>
+			<th rowspan="3">Valoare<br>la pret cu<br>amanuntul<br>fara TVA</th>
+			<th rowspan="3">Valoare<br>la pret cu<br>amanuntul<br>cu TVA</th>
+			<th colspan="2">din care<br>TVA</th>
+		</tr>
+		<tr class="align-middle text-center">
+			<th rowspan="2">Pret unitar</th>
+			<th rowspan="2">Valoare</th>
+			<th colspan="2">TVA</th>
+			<th rowspan="2">Total<br>fact.401</th>
+			<th rowspan="2">5</th>
+			<th rowspan="2">Suma</th>
+			<th rowspan="2">pe<br>U/M</th>
+			<th rowspan="2">Total<br>4428</th>
+		</tr>
+		<tr class="align-middle text-center">
+			<th>pe<br>U/M</th>
+			<th>Total<br>4428</th>
+		</tr>
+		{% set priceQuantityTotal = 0 %}
+		{% set priceVatQuantityTotal = 0 %}
+		{% set additionTotal = 0 %}
+		{% set sellPriceQuantityTotal = 0 %}
+		{% set sellPriceVatQuantityTotal = 0 %}
+		{% for InvoiceLine in simpleXml.InvoiceLine is defined ? simpleXml.InvoiceLine : [] %}
+			{% set unitCode = InvoiceLine.InvoicedQuantity.attributes.unitCode %}
+			{% set price = InvoiceLine.Price.PriceAmount %}
+			{% set quantity = InvoiceLine.InvoicedQuantity %}
+			{% set priceQuantity = InvoiceLine.LineExtensionAmount %}
+			{% set vat = (InvoiceLine.Item.ClassifiedTaxCategory.Percent is defined) ? (InvoiceLine.Item.ClassifiedTaxCategory.Percent / 100) : 0 %}
+			{% set priceVatQuantity = priceQuantity * (1 + vat) %}
+			{% set sellPriceVat = einvoice.sellPrice[InvoiceLine.ID|number_format] %}
+			{% set sellPriceVatQuantity = sellPriceVat * quantity %}
+			{% set sellPrice = sellPriceVat / (1 + vat) %}
+			{% set sellPriceQuantity = sellPrice * quantity %}
+			{% set addition = sellPrice - price %}
+			{% set priceQuantityTotal = priceQuantityTotal + priceQuantity %}
+			{% set priceVatQuantityTotal = priceVatQuantityTotal + priceVatQuantity %}
+			{% set additionTotal = additionTotal + addition %}
+			{% set sellPriceQuantityTotal = sellPriceQuantityTotal + sellPriceQuantity %}
+			{% set sellPriceVatQuantityTotal = sellPriceVatQuantityTotal + sellPriceVatQuantity %}
+			<tr class="text-end text-nowrap">
+				<td class="text-center">{{ InvoiceLine.ID }}</td>
+				<td class="text-start text-wrap" style="min-width: 160px;">{{ InvoiceLine.Item.Name }}</td>
+				<td class="text-center">{{ unitCode }}</td>
+				<td>{{ quantity|number_format(2) }}</td>
+				<td>{{ price|number_format(4) }}</td>
+				<td>{{ priceQuantity|number_format(2) }}</td>
+				<td>{{ (price * vat)|number_format(2) }}</td>
+				<td>{{ (priceQuantity * vat)|number_format(2) }}</td>
+				<td>{{ priceVatQuantity|number_format(2) }}</td>
+				<td>{{ ((price + 0) ? (addition * 100 / price) : 0)|number_format(2) }}</td>
+				<td>{{ addition|number_format(2) }}</td>
+				<td>{{ sellPrice|number_format(2) }}</td>
+				<td>{{ (addition * vat)|number_format(2) }}</td>
+				<td>{{ sellPriceVat|number_format(2) }}</td>
+				<td>{{ sellPriceQuantity|number_format(2) }}</td>
+				<td>{{ (quantity * sellPriceVat)|number_format(2) }}</td>
+				<td>{{ (sellPriceVat * vat / (1 + vat))|number_format(2) }}</td>
+				<td>{{ (quantity * sellPriceVat * vat / (1 + vat))|number_format(2) }}</td>
+			</tr>
+		{% endfor %}
+		<tr class="text-end">
+			<td colspan="5"></td>
+			<td>{{ priceQuantityTotal|number_format(2) }}</td>
+			<td></td>
+			<td>{{ (priceVatQuantityTotal - priceQuantityTotal)|number_format(2) }}</td>
+			<td>{{ priceVatQuantityTotal|number_format(2) }}</td>
+			<td></td>
+			<td>{{ additionTotal|number_format(2) }}</td>
+			<td colspan="3"></td>
+			<td>{{ sellPriceQuantityTotal|number_format(2) }}</td>
+			<td>{{ sellPriceVatQuantityTotal|number_format(2) }}</td>
+			<td></td>
+			<td>{{ (sellPriceVatQuantityTotal - sellPriceQuantityTotal)|number_format(2) }}</td>
+		</tr>
+		{% if simpleXml.LegalMonetaryTotal.AllowanceTotalAmount is defined and simpleXml.LegalMonetaryTotal.AllowanceTotalAmount > 0 %}
+			<tr class="text-end">
+				{% set deduction = simpleXml.LegalMonetaryTotal.AllowanceTotalAmount / priceQuantityTotal * -1 %}
+				<td></td>
+				<td class="text-start">Total deduceri</td>
+				<td colspan="3"></td>
+				<td>{{ (priceQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ ((priceVatQuantityTotal - priceQuantityTotal) * deduction)|number_format(2) }}</td>
+				<td>{{ (priceVatQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ (additionTotal * deduction)|number_format(2) }}</td>
+				<td colspan="3"></td>
+				<td>{{ (sellPriceQuantityTotal * deduction)|number_format(2) }}</td>
+				<td>{{ (sellPriceVatQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ ((sellPriceVatQuantityTotal - sellPriceQuantityTotal) * deduction)|number_format(2) }}</td>
+			</tr>
+			<tr class="text-end">
+				{% set deduction = 1 + deduction %}
+				<td colspan="5"></td>
+				<td>{{ (priceQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ ((priceVatQuantityTotal - priceQuantityTotal) * deduction)|number_format(2) }}</td>
+				<td>{{ (priceVatQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ (additionTotal * deduction)|number_format(2) }}</td>
+				<td colspan="3"></td>
+				<td>{{ (sellPriceQuantityTotal * deduction)|number_format(2) }}</td>
+				<td>{{ (sellPriceVatQuantityTotal * deduction)|number_format(2) }}</td>
+				<td></td>
+				<td>{{ ((sellPriceVatQuantityTotal - sellPriceQuantityTotal) * deduction)|number_format(2) }}</td>
+			</tr>
+		{% endif %}
+	</table>
+	<div class="row mt-2">
+		<div class="col-4 text-center">
+			COMISIA DE RECEPTIE<br>
+			<small>(semnat.)</small><br>
+			Gheorghe Florica
+		</div>
+		<div class="col"></div>
+		<div class="col-4 text-center">
+			Data:<br>
+			{{ simpleXml.IssueDate }}
+		</div>
+	</div>
+{% endblock %}
