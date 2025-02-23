@@ -78,9 +78,9 @@ class S3
         );
     }
 
-    public function downloadZip(EinvoiceModel $einvoiceModel): Result
+    public function downloadZip(EinvoiceModel $einvoiceModel): void
     {
-        return $this->uploadFile(
+        $this->downloadFile(
             fileName: $einvoiceModel->getZipName(),
             filePath: $einvoiceModel->getZipPath(),
         );
