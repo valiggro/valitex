@@ -3,25 +3,13 @@
 namespace App\Model\Einvoice;
 
 use App\Entity\Einvoice;
-use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 class EinvoiceModel
 {
-    private Einvoice $einvoice;
-    private string $varDir;
-
     public function __construct(
-        private ContainerBagInterface $containerBag,
-    ) {
-        $this->varDir = $this->containerBag->get('einvoice.file_dir');
-    }
-
-    public function with(Einvoice $einvoice): static
-    {
-        $new = clone $this;
-        $new->einvoice = $einvoice;
-        return $new;
-    }
+        private Einvoice $einvoice,
+        private string $varDir,
+    ) {}
 
     public function getEinvoice(): Einvoice
     {

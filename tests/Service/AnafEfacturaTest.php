@@ -22,9 +22,10 @@ class AnafEfacturaTest extends KernelTestCase
         ];
         $einvoice = (new Einvoice)
             ->setMessage($message);
-        $this->einvoiceModel = $this
-            ->createMock(EinvoiceModel::class)
-            ->with($einvoice);
+        $this->einvoiceModel = new EinvoiceModel(
+            einvoice: $einvoice,
+            varDir: '/tmp',
+        );
     }
 
     public function test_getMessages(): void

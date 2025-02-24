@@ -6,15 +6,24 @@ use App\Entity\Einvoice as EinvoiceEntity;
 use App\Factory\ZipArchiveFactory;
 use App\Model\Einvoice\EinvoiceModel;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 class Einvoice
 {
     public function __construct(
-        private EinvoiceModel $einvoiceModel,
+        private ContainerBagInterface $containerBag,
         private Filesystem $filesystem,
         private S3 $s3,
         private ZipArchiveFactory $zipArchiveFactory,
     ) {}
+
+    public function getModel(EinvoiceEntity $einvoice): EinvoiceModel
+    {
+        return new EinvoiceModel(
+            einvoice: $einvoice,
+            varDir: $this->containerBag->get('einvoice.file_dir'),
+        );
+    }
 
     public function extractZip(EinvoiceModel $einvoiceModel): void
     {
@@ -42,7 +51,7 @@ class Einvoice
 
     public function getXml(EinvoiceEntity $einvoice): \SimpleXMLElement
     {
-        $einvoiceModel = $this->einvoiceModel->with($einvoice);
+        $einvoiceModel = $this->getModel($einvoice);
         $this->s3->downloadZip($einvoiceModel);
         $this->extractZip($einvoiceModel);
         return $this->parseXml($einvoiceModel);
@@ -50,7 +59,7 @@ class Einvoice
 
     public function getPdfUrl(EinvoiceEntity $einvoice): string
     {
-        $einvoiceModel = $this->einvoiceModel->with($einvoice);
+        $einvoiceModel = $this->getModel($einvoice);
         return $this->s3->getPresignedUrl(
             fileName: $einvoiceModel->getPdfName()
         );

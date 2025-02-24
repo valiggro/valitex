@@ -6,14 +6,9 @@ use Anaf\Responses\Efactura\Message;
 
 class MessageModel
 {
-    private Message $message;
-
-    public function with(Message $message): static
-    {
-        $new = clone $this;
-        $new->message = $message;
-        return $new;
-    }
+    public function __construct(
+        private Message $message,
+    ) {}
 
     public function getSupplierId(): int
     {

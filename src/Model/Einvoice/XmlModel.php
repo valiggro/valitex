@@ -4,14 +4,9 @@ namespace App\Model\Einvoice;
 
 class XmlModel
 {
-    private \SimpleXMLElement $simpleXml;
-
-    public function with(\SimpleXMLElement $simpleXml): static
-    {
-        $new = clone $this;
-        $new->simpleXml = $simpleXml;
-        return $new;
-    }
+    public function __construct(
+        private \SimpleXMLElement $simpleXml,
+    ) {}
 
     public function getSupplierName(): string
     {

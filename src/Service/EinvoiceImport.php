@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Einvoice as EinvoiceEntity;
 use App\Model\AnafEfactura\MessageModel;
-use App\Model\Einvoice\EinvoiceModel;
 use App\Model\Einvoice\XmlModel;
 use App\Repository\EinvoiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,12 +13,9 @@ class EinvoiceImport
     public function __construct(
         private EinvoiceRepository $einvoiceRepository,
         private Einvoice $einvoice,
-        private EinvoiceModel $einvoiceModel,
         private AnafEfactura $anafEfactura,
-        private MessageModel $messageModel,
         private EntityManagerInterface $entityManager,
         private S3 $s3,
-        private XmlModel $xmlModel,
     ) {}
 
     public function import(): void
@@ -35,7 +31,7 @@ class EinvoiceImport
     public function importMessage($message): EinvoiceEntity
     {
         if (!$einvoice = $this->einvoiceRepository->findOneBy(['messageId' => $message->id])) {
-            $messageModel = $this->messageModel->with($message);
+            $messageModel = new MessageModel($message);
             $einvoice = (new EinvoiceEntity)
                 ->setMessage($message)
                 ->setSupplierId($messageModel->getSupplierId());
@@ -50,7 +46,7 @@ class EinvoiceImport
         if ($einvoice->hasZip()) {
             return;
         }
-        $einvoiceModel = $this->einvoiceModel->with($einvoice);
+        $einvoiceModel = $this->einvoice->getModel($einvoice);
         $this->anafEfactura->downloadZip($einvoiceModel);
         $result = $this->s3->uploadZip($einvoiceModel);
         $einvoice->setS3ZipModifiedAt(
@@ -65,11 +61,11 @@ class EinvoiceImport
         if ($einvoice->hasXml()) {
             return;
         }
-        $einvoiceModel = $this->einvoiceModel->with($einvoice);
+        $einvoiceModel = $this->einvoice->getModel($einvoice);
         $this->anafEfactura->downloadZip($einvoiceModel);
         $this->einvoice->extractZip($einvoiceModel);
         $simpleXml = $this->einvoice->parseXml($einvoiceModel);
-        $xmlModel = $this->xmlModel->with($simpleXml);
+        $xmlModel = new XmlModel($simpleXml);
         $einvoice
             ->setSupplierName($xmlModel->getSupplierName())
             ->setNumber($xmlModel->getNumber())
@@ -84,7 +80,7 @@ class EinvoiceImport
         if ($einvoice->hasPdf()) {
             return;
         }
-        $einvoiceModel = $this->einvoiceModel->with($einvoice);
+        $einvoiceModel = $this->einvoice->getModel($einvoice);
         $this->anafEfactura->downloadZip($einvoiceModel);
         $this->einvoice->extractZip($einvoiceModel);
         $this->anafEfactura->downloadPdf($einvoiceModel);
