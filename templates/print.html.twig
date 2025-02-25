@@ -25,7 +25,12 @@
 	<script>
 		window.print();
 		window.onafterprint = function () {
-			window.location = '{{ (app.request.query.get('redirect') ?: path('app_einvoice_index'))|raw }}';
+			let redirect = '{{ (app.request.query.get('redirect') ?: path('app_einvoice_index'))|raw }}';
+			window.location = redirect
+			// firefox bug fix
+			setTimeout(function () {
+				window.location = redirect;
+			}, 1000);
 		}
 	</script>
 {% endblock %}
