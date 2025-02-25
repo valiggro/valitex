@@ -2,6 +2,7 @@
 
 namespace App\Tests\Service;
 
+use App\Entity\Einvoice;
 use App\Model\Einvoice\EinvoiceModel;
 use App\Service\S3;
 use Aws\Result;
@@ -14,6 +15,39 @@ use Symfony\Component\Filesystem\Filesystem;
 class S3Test extends KernelTestCase
 {
     private string $bucket = 'TEST_AWS_S3_BUCKET';
+
+    private string $fileName;
+    private string $filePath;
+
+    protected function setUp(): void
+    {
+        $this->fileName = 'fileName' . uniqid();
+        $this->filePath = 'filePath' . uniqid();
+    }
+
+    private function _result(int $statusCode = 200): Result
+    {
+        return new Result([
+            'Body' => 'Body' . uniqid(),
+            '@metadata' => [
+                'statusCode' => $statusCode,
+            ],
+        ]);
+    }
+
+    private function _einvoiceModel(): EinvoiceModel
+    {
+        $message = (object) [
+            'id' => random_int(1, 9999),
+            'solicitationId' => random_int(1, 9999),
+        ];
+        $einvoice = (new Einvoice)
+            ->setMessage($message);
+        return new EinvoiceModel(
+            einvoice: $einvoice,
+            varDir: '/tmp',
+        );
+    }
 
     public function test_construct(): void
     {
@@ -32,13 +66,7 @@ class S3Test extends KernelTestCase
 
     public function test_uploadFile_exists(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
 
         $s3Client = $this->getMockBuilder(S3Client::class)
             ->disableOriginalConstructor()
@@ -48,7 +76,7 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
+                'Key' => $this->fileName,
             ])
             ->willReturn($result);
         $s3Client->expects(static::never())
@@ -56,18 +84,12 @@ class S3Test extends KernelTestCase
         static::getContainer()->set(S3Client::class, $s3Client);
 
         $s3 = static::getContainer()->get(S3::class);
-        $s3->uploadFile($fileName, $filePath);
+        $s3->uploadFile($this->fileName, $this->filePath);
     }
 
     public function test_uploadFile_statusCode_wrong(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => -1,
-            ],
-        ]);
+        $result = $this->_result(-1);
 
         $s3Client = $this->getMockBuilder(S3Client::class)
             ->disableOriginalConstructor()
@@ -77,7 +99,7 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
+                'Key' => $this->fileName,
             ])
             ->willReturn($result);
         $s3Client->expects(static::never())
@@ -86,18 +108,12 @@ class S3Test extends KernelTestCase
 
         $s3 = static::getContainer()->get(S3::class);
         $this->expectException(\Exception::class);
-        $s3->uploadFile($fileName, $filePath);
+        $s3->uploadFile($this->fileName, $this->filePath);
     }
 
     public function test_uploadFile(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
 
         $s3Client = $this->getMockBuilder(S3Client::class)
             ->disableOriginalConstructor()
@@ -110,35 +126,30 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
+                'Key' => $this->fileName,
             ])
             ->willThrowException($s3Exception);
         $s3Client->expects(static::once())
             ->method('putObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
-                'SourceFile' => $filePath,
+                'Key' => $this->fileName,
+                'SourceFile' => $this->filePath,
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
 
         $s3 = static::getContainer()->get(S3::class);
         static::assertSame(
-            $s3->uploadFile($fileName, $filePath),
+            $s3->uploadFile($this->fileName, $this->filePath),
             $result
         );
     }
 
     public function test_uploadZip(): void
     {
-        $zipName = 'zipName' . uniqid();
-        $zipPath = 'zipPath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
+        $einvoiceModel = $this->_einvoiceModel();
 
         $s3Client = $this->getMockBuilder(S3Client::class)
             ->disableOriginalConstructor()
@@ -148,32 +159,22 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $zipName,
+                'Key' => $einvoiceModel->getZipName(),
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
 
-        $einvoiceModel = $this->createMock(EinvoiceModel::class);
-        $einvoiceModel->expects(static::once())
-            ->method('getZipName')
-            ->willReturn($zipName);
-        $einvoiceModel->expects(static::once())
-            ->method('getZipPath')
-            ->willReturn($zipPath);
-
         $s3 = static::getContainer()->get(S3::class);
-        static::assertSame($s3->uploadZip($einvoiceModel), $result);
+        static::assertSame(
+            $s3->uploadZip($einvoiceModel),
+            $result
+        );
     }
 
     public function test_uploadPdf(): void
     {
-        $pdfName = 'pdfName' . uniqid();
-        $pdfPath = 'pdfPath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
+        $einvoiceModel = $this->_einvoiceModel();
 
         $s3Client = $this->getMockBuilder(S3Client::class)
             ->disableOriginalConstructor()
@@ -183,32 +184,24 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $pdfName,
+                'Key' => $einvoiceModel->getPdfName(),
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
 
-        $einvoiceModel = $this->createMock(EinvoiceModel::class);
-        $einvoiceModel->expects(static::once())
-            ->method('getPdfName')
-            ->willReturn($pdfName);
-        $einvoiceModel->expects(static::once())
-            ->method('getPdfPath')
-            ->willReturn($pdfPath);
-
         $s3 = static::getContainer()->get(S3::class);
-        static::assertSame($s3->uploadPdf($einvoiceModel), $result);
+        static::assertSame(
+            $s3->uploadPdf($einvoiceModel),
+            $result
+        );
     }
 
     public function test_downloadFile_exists(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($filePath)
+            ->with($this->filePath)
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -221,23 +214,17 @@ class S3Test extends KernelTestCase
         static::getContainer()->set(S3Client::class, $s3Client);
 
         $s3 = static::getContainer()->get(S3::class);
-        $s3->downloadFile($fileName, $filePath);
+        $s3->downloadFile($this->fileName, $this->filePath);
     }
 
     public function test_downloadFile_statusCode_wrong(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-        $result = new Result([
-            '@metadata' => [
-                'statusCode' => -1,
-            ],
-        ]);
+        $result = $this->_result(-1);
 
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($filePath)
+            ->with($this->filePath)
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -249,35 +236,28 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
+                'Key' => $this->fileName,
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
 
         $s3 = static::getContainer()->get(S3::class);
         $this->expectException(\Exception::class);
-        $s3->downloadFile($fileName, $filePath);
+        $s3->downloadFile($this->fileName, $this->filePath);
     }
 
     public function test_downloadFile(): void
     {
-        $fileName = 'fileName' . uniqid();
-        $filePath = 'filePath' . uniqid();
-        $result = new Result([
-            'Body' => 'Body' . uniqid(),
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
 
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($filePath)
+            ->with($this->filePath)
             ->willReturn(false);
         $filesystem->expects(static::once())
             ->method('dumpFile')
-            ->with($filePath, $result['Body']);
+            ->with($this->filePath, $result['Body']);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $s3Client = $this->getMockBuilder(S3Client::class)
@@ -288,34 +268,28 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $fileName,
+                'Key' => $this->fileName,
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
 
         $s3 = static::getContainer()->get(S3::class);
-        $s3->downloadFile($fileName, $filePath);
+        $s3->downloadFile($this->fileName, $this->filePath);
     }
 
     public function test_downloadZip(): void
     {
-        $zipName = 'zipName' . uniqid();
-        $zipPath = 'zipPath' . uniqid();
-        $result = new Result([
-            'Body' => 'Body' . uniqid(),
-            '@metadata' => [
-                'statusCode' => 200,
-            ],
-        ]);
+        $result = $this->_result();
+        $einvoiceModel = $this->_einvoiceModel();
 
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($zipPath)
+            ->with($einvoiceModel->getZipPath())
             ->willReturn(false);
         $filesystem->expects(static::once())
             ->method('dumpFile')
-            ->with($zipPath, $result['Body']);
+            ->with($einvoiceModel->getZipPath(), $result['Body']);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $s3Client = $this->getMockBuilder(S3Client::class)
@@ -326,18 +300,10 @@ class S3Test extends KernelTestCase
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
-                'Key' => $zipName,
+                'Key' => $einvoiceModel->getZipName(),
             ])
             ->willReturn($result);
         static::getContainer()->set(S3Client::class, $s3Client);
-
-        $einvoiceModel = $this->createMock(EinvoiceModel::class);
-        $einvoiceModel->expects(static::once())
-            ->method('getZipName')
-            ->willReturn($zipName);
-        $einvoiceModel->expects(static::once())
-            ->method('getZipPath')
-            ->willReturn($zipPath);
 
         $s3 = static::getContainer()->get(S3::class);
         $s3->downloadZip($einvoiceModel);

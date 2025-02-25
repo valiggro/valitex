@@ -12,9 +12,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class AnafEfacturaTest extends KernelTestCase
 {
-    private EinvoiceModel $einvoiceModel;
-
-    protected function setUp(): void
+    private function _einvoiceModel(): EinvoiceModel
     {
         $message = (object) [
             'id' => random_int(1, 9999),
@@ -22,7 +20,7 @@ class AnafEfacturaTest extends KernelTestCase
         ];
         $einvoice = (new Einvoice)
             ->setMessage($message);
-        $this->einvoiceModel = new EinvoiceModel(
+        return new EinvoiceModel(
             einvoice: $einvoice,
             varDir: '/tmp',
         );
@@ -35,10 +33,12 @@ class AnafEfacturaTest extends KernelTestCase
 
     public function test_downloadZip_exists(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getZipPath())
+            ->with($einvoiceModel->getZipPath())
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -48,15 +48,17 @@ class AnafEfacturaTest extends KernelTestCase
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
-        $anafEfactura->downloadZip($this->einvoiceModel);
+        $anafEfactura->downloadZip($einvoiceModel);
     }
 
     public function test_downloadZip_noContent(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getZipPath())
+            ->with($einvoiceModel->getZipPath())
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -64,49 +66,52 @@ class AnafEfacturaTest extends KernelTestCase
         $efactura->expects(static::once())
             ->method('download')
             ->with([
-                'id' => $this->einvoiceModel->getEinvoice()->getMessageId(),
+                'id' => $einvoiceModel->getEinvoice()->getMessageId(),
             ])
             ->willReturn(new FileHandler(fileContent: ''));
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
         $this->expectException(\Exception::class);
-        $anafEfactura->downloadZip($this->einvoiceModel);
+        $anafEfactura->downloadZip($einvoiceModel);
     }
 
     public function test_downloadZip(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
         $content = uniqid();
 
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getZipPath())
+            ->with($einvoiceModel->getZipPath())
             ->willReturn(false);
         $filesystem->expects(static::once())
             ->method('dumpFile')
-            ->with($this->einvoiceModel->getZipPath(), $content);
+            ->with($einvoiceModel->getZipPath(), $content);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $efactura = $this->createMock(Efactura::class);
         $efactura->expects(static::once())
             ->method('download')
             ->with([
-                'id' => $this->einvoiceModel->getEinvoice()->getMessageId(),
+                'id' => $einvoiceModel->getEinvoice()->getMessageId(),
             ])
             ->willReturn(new FileHandler(fileContent: $content));
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
-        $anafEfactura->downloadZip($this->einvoiceModel);
+        $anafEfactura->downloadZip($einvoiceModel);
     }
 
     public function test_downloadPdf_exists(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getPdfPath())
+            ->with($einvoiceModel->getPdfPath())
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -116,52 +121,55 @@ class AnafEfacturaTest extends KernelTestCase
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
-        $anafEfactura->downloadPdf($this->einvoiceModel);
+        $anafEfactura->downloadPdf($einvoiceModel);
     }
 
     public function test_downloadPdf_noContent(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getPdfPath())
+            ->with($einvoiceModel->getPdfPath())
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $efactura = $this->createMock(Efactura::class);
         $efactura->expects(static::once())
             ->method('xmlToPdf')
-            ->with($this->einvoiceModel->getXmlPath())
+            ->with($einvoiceModel->getXmlPath())
             ->willReturn(new FileHandler(fileContent: ''));
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
         $this->expectException(\Exception::class);
-        $anafEfactura->downloadPdf($this->einvoiceModel);
+        $anafEfactura->downloadPdf($einvoiceModel);
     }
 
     public function test_downloadPdf(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
         $content = uniqid();
 
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getPdfPath())
+            ->with($einvoiceModel->getPdfPath())
             ->willReturn(false);
         $filesystem->expects(static::once())
             ->method('dumpFile')
-            ->with($this->einvoiceModel->getPdfPath(), $content);
+            ->with($einvoiceModel->getPdfPath(), $content);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $efactura = $this->createMock(Efactura::class);
         $efactura->expects(static::once())
             ->method('xmlToPdf')
-            ->with($this->einvoiceModel->getXmlPath())
+            ->with($einvoiceModel->getXmlPath())
             ->willReturn(new FileHandler(fileContent: $content));
         static::getContainer()->set(Efactura::class, $efactura);
 
         $anafEfactura = static::getContainer()->get(AnafEfactura::class);
-        $anafEfactura->downloadPdf($this->einvoiceModel);
+        $anafEfactura->downloadPdf($einvoiceModel);
     }
 }

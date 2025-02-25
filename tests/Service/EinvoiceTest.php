@@ -11,9 +11,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class EinvoiceTest extends KernelTestCase
 {
-    private EinvoiceModel $einvoiceModel;
-
-    protected function setUp(): void
+    private function _einvoiceModel(): EinvoiceModel
     {
         $message = (object) [
             'id' => random_int(1, 9999),
@@ -21,7 +19,7 @@ class EinvoiceTest extends KernelTestCase
         ];
         $einvoice = (new EinvoiceEntity)
             ->setMessage($message);
-        $this->einvoiceModel = new EinvoiceModel(
+        return new EinvoiceModel(
             einvoice: $einvoice,
             varDir: '/tmp',
         );
@@ -29,10 +27,12 @@ class EinvoiceTest extends KernelTestCase
 
     public function test_extractZip_exists(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getZipExtractPath())
+            ->with($einvoiceModel->getZipExtractPath())
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
@@ -42,25 +42,27 @@ class EinvoiceTest extends KernelTestCase
         static::getContainer()->set(ZipArchiveFactory::class, $zipArchiveFactory);
 
         $einvoice = static::getContainer()->get(Einvoice::class);
-        $einvoice->extractZip($this->einvoiceModel);
+        $einvoice->extractZip($einvoiceModel);
     }
 
     public function test_extractZip(): void
     {
+        $einvoiceModel = $this->_einvoiceModel();
+
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects(static::once())
             ->method('exists')
-            ->with($this->einvoiceModel->getZipExtractPath())
+            ->with($einvoiceModel->getZipExtractPath())
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $zipArchive = $this->createMock(\ZipArchive::class);
         $zipArchive->expects(static::once())
             ->method('open')
-            ->with($this->einvoiceModel->getZipPath());
+            ->with($einvoiceModel->getZipPath());
         $zipArchive->expects(static::once())
             ->method('extractTo')
-            ->with($this->einvoiceModel->getZipExtractPath());
+            ->with($einvoiceModel->getZipExtractPath());
         $zipArchive->expects(static::once())
             ->method('close')
             ->with();
@@ -73,7 +75,7 @@ class EinvoiceTest extends KernelTestCase
         static::getContainer()->set(ZipArchiveFactory::class, $zipArchiveFactory);
 
         $einvoice = static::getContainer()->get(Einvoice::class);
-        $einvoice->extractZip($this->einvoiceModel);
+        $einvoice->extractZip($einvoiceModel);
     }
 
     public function test_parseXml(): void
