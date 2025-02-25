@@ -86,6 +86,11 @@ class EinvoiceTest extends KernelTestCase
         $this->markTestIncomplete();
     }
 
+    public function test_getXmlModel(): void
+    {
+        $this->markTestIncomplete();
+    }
+
     public function test_getPdfUrl(): void
     {
         $this->markTestIncomplete();
