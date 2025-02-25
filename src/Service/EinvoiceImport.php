@@ -68,7 +68,7 @@ class EinvoiceImport
         $xmlModel = new XmlModel($simpleXml);
         $einvoice
             ->setSupplierName($xmlModel->getSupplierName())
-            ->setNumber($xmlModel->getNumber())
+            ->setNumber($xmlModel->getId())
             ->setIssueDate($xmlModel->getIssueDate())
             ->setPayableAmount($xmlModel->getPayableAmount());
         $this->entityManager->persist($einvoice);

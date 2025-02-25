@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Einvoice as EinvoiceEntity;
 use App\Factory\ZipArchiveFactory;
 use App\Model\Einvoice\EinvoiceModel;
+use App\Model\Einvoice\XmlModel;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
@@ -55,6 +56,11 @@ class Einvoice
         $this->s3->downloadZip($einvoiceModel);
         $this->extractZip($einvoiceModel);
         return $this->parseXml($einvoiceModel);
+    }
+
+    public function getXmlModel(EinvoiceEntity $einvoice): XmlModel
+    {
+        return new XmlModel($this->getXml($einvoice));
     }
 
     public function getPdfUrl(EinvoiceEntity $einvoice): string

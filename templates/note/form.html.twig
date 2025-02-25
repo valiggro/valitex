@@ -1,18 +1,18 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}
-	{{ simpleXml.AccountingSupplierParty.Party.PartyLegalEntity.RegistrationName }}
+	{{ noteModel.xmlModel.supplierName }}
 {% endblock %}
 
 {% block content %}
 	<div class="container py-3">
 		<div class="text-center">
-			<h4>{{ simpleXml.AccountingSupplierParty.Party.PartyLegalEntity.RegistrationName }}</h4>
-			{{ simpleXml.IssueDate }}
+			<h4>{{ noteModel.xmlModel.supplierName }}</h4>
+			{{ noteModel.xmlModel.issueDate|date('Y-m-d') }}
 			|
-			{{ simpleXml.LegalMonetaryTotal.PayableAmount ~ ' lei' }}
+			{{ noteModel.xmlModel.payableAmount ~ ' lei' }}
 			| NIR:
-			{{ einvoice.noteNumber }}
+			{{ noteModel.einvoice.noteNumber }}
 		</div>
 		<form method="post">
 			<table class="table table-sm table-bordered mt-3 align-middle">
@@ -25,39 +25,29 @@
 					<th class="text-center">Sugestie<br>oficială</th>
 					<th class="text-center">Sugestie<br>neoficială</th>
 				</tr>
-				{% for InvoiceLine in simpleXml.InvoiceLine is defined ? simpleXml.InvoiceLine : [] %}
-					{% set line = lines[InvoiceLine.ID|escape] %}
+				{% for itemModel in noteModel.itemModels %}
+					{% set inputClass = 'form-control rounded-0 ' ~ (itemModel.sellPrice ? 'text-secondary' : 'border-dark') %}
 					<tr>
 						<td class="text-secondary text-center p-0" style="width: 30px;">
-							{{ InvoiceLine.ID }}
+							{{ itemModel.xmlModel.id }}
 						</td>
 						<td class="p-0">
-							<input type="text" min="{{ InvoiceLine.Price.PriceAmount }}" step="0.0001" name="line[{{ InvoiceLine.ID }}][nameMatch]" class="form-control rounded-0 {{ line.sellPrice ? 'text-secondary' : 'border-dark' }}" value="{{ line.nameMatch }}" required>
+							<input type="text" name="item[{{ itemModel.xmlModel.id }}][nameMatch]" class="{{ inputClass }}" value="{{ itemModel.nameMatch }}" required>
 						</td>
 						<td class="text-secondary small lh-1">
-							<div>
-								{{ InvoiceLine.Item.Name }}
-							</div>
-							{% if InvoiceLine.Item.Description is defined %}
-								<div>
-									{{ InvoiceLine.Item.Description }}
-								</div>
-							{% endif %}
-							{% if (InvoiceLine.Note is defined) and not (InvoiceLine.Note|split(InvoiceLine.Item.Name)|length - 1) and not (InvoiceLine.Note|split('cod intern SmartBill:')|length - 1) %}
-								<div>
-									{{ InvoiceLine.Note }}
-								</div>
-							{% endif %}
+							<div>{{ itemModel.xmlModel.name }}</div>
+							<div>{{ itemModel.xmlModel.description }}</div>
+							<div>{{ itemModel.note }}</div>
 						</td>
 						<td class="p-1" style="width: 100px;">
-							<button class="btn btn-warning btn-sm text-center w-100" onclick="jQuery(this).parents('tr').find('input[type=number]').val({{InvoiceLine.Price.PriceAmount|number_format(4, '.', '')}}); return false;">
-								{{ InvoiceLine.Price.PriceAmount|number_format(4) }}
+							<button class="btn btn-warning btn-sm text-center w-100" onclick="jQuery(this).parents('tr').find('input[type=number]').val({{ itemModel.xmlModel.priceAmount|number_format(4, '.', '')}}); return false;">
+								{{ itemModel.xmlModel.priceAmount|number_format(4) }}
 							</button>
 						</td>
 						<td class="p-0" style="width: 110px;">
-							<input type="number" min="{{ InvoiceLine.Price.PriceAmount|number_format(4, '.', '') }}" step="0.0001" name="line[{{ InvoiceLine.ID }}][sellPrice]" class="form-control rounded-0 text-end {{ line.sellPrice ? 'text-secondary' : 'border-dark' }}" value="{{ line.sellPrice }}" required>
+							<input type="number" min="0" step="0.01" name="item[{{ itemModel.xmlModel.id }}][sellPrice]" class="{{ inputClass }} text-end" value="{{ itemModel.sellPrice }}" required>
 						</td>
-						{% for s in line.sellPriceSuggestions %}
+						{% for s in itemModel.sellPriceSuggestions %}
 							<td class="p-1" style="width: 100px;">
 								{% if s %}
 									<button class="btn btn-success btn-sm text-center w-100" onclick="jQuery(this).parents('tr').find('input[type=number]').val({{s|number_format(4, '.', '')}}); return false;">
