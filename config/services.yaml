@@ -50,3 +50,11 @@ services:
                 endpoint: '%env(AWS_S3_ENDPOINT)%'
                 version: latest
                 credentials: '@Aws\Credentials\Credentials'
+
+    # google/oauth2
+    League\OAuth2\Client\Provider\Google:
+        $options:
+            clientId: '%env(GOOGLE_OAUTH2_CLIENT_ID)%'
+            clientSecret: '%env(GOOGLE_OAUTH2_CLIENT_SECRET)%'
+            redirectUri: '%env(GOOGLE_OAUTH2_REDIRECT_URL)%'
+            scopes: ['email']

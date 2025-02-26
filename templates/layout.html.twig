@@ -9,18 +9,33 @@
 			</button>
 			<div class="collapse navbar-collapse" id="navbar">
 				<ul class="navbar-nav ms-auto">
+					{% if app.user %}
 					<li class="nav-item">
-						<a class="nav-link{% if app.request.pathinfo  == path('app_setting_index') %} active{% endif %}" href="{{ path('app_setting_index') }}">
+						<a class="nav-link{% if app.request.pathinfo == path('app_setting_index') %} active{% endif %}" href="{{ path('app_setting_index') }}">
 							<i class="bi bi-gear-fill"></i>
 							Setări
 						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link{% if app.request.pathinfo  == path('app_einvoice_index') %} active{% endif %}" href="{{ path('app_einvoice_index') }}">
+						<a class="nav-link{% if app.request.pathinfo == path('app_einvoice_index') %} active{% endif %}" href="{{ path('app_einvoice_index') }}">
 							<i class="bi bi-file-earmark-medical"></i>
 							eFactură
 						</a>
 					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{{ path('_logout_main') }}">
+							<i class="bi bi-person"></i>
+							{{ app.user.email }}
+						</a>
+					</li>
+					{% else %}
+					<li class="nav-item">
+						<a class="nav-link" href="{{ path('app_googleoauth2_authorize') }}">
+							<i class="bi bi-person"></i>
+							Autentificare
+						</a>
+					</li>
+					{% endif %}
 				</ul>
 			</div>
 		</div>
@@ -28,7 +43,8 @@
 	<div class="container">
 		{% for label, messages in app.flashes %}
 			{% for message in messages %}
-				<div class="alert alert-{{ label }} mt-3">
+				{% set alertClass = {'success': 'success', 'error': 'danger'}[label] %}
+				<div class="alert alert-{{ alertClass }} mt-3">
 					{{ message }}
 				</div>
 			{% endfor %}
