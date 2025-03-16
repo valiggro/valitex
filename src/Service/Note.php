@@ -38,9 +38,9 @@ class Note
             ], [
                 'sellPrice' => 'DESC'
             ]);
-            $items = array_filter($items, function ($item) {
+            $items = array_values(array_filter($items, function ($item) {
                 return $item->getPrice() != $item->getSellPrice();
-            });
+            }));
             foreach ($items as $item) {
                 if (substr_count($itemModel->getNameMatch(), $item->getNameMatch())) {
                     $itemModel->setNameMatch($item->getNameMatch());
