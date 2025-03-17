@@ -6,15 +6,24 @@
 
 {% block content %}
 	<div class="container py-3">
-		<div class="text-center">
-			<h4>{{ noteModel.xmlModel.supplierName }}</h4>
-			{{ noteModel.xmlModel.issueDate|date('Y-m-d') }}
-			|
-			{{ noteModel.xmlModel.payableAmount ~ ' lei' }}
-			| NIR:
-			{{ noteModel.einvoice.noteNumber }}
-		</div>
 		<form method="post">
+			<div class="text-center">
+				<h4>{{ noteModel.xmlModel.supplierName }}</h4>
+				<table class="table table-borderless mx-auto w-auto text-nowrap">
+					<tr>
+						<th>Data:</th>
+						<td>{{ noteModel.xmlModel.issueDate|date('Y-m-d') }}</td>
+						<td>|</td>
+						<th>Total:</th>
+						<td>{{ noteModel.xmlModel.payableAmount ~ ' lei' }}</td>
+						<td>|</td>
+						<th>NIR:</th>
+						<td>
+							<input type="number" min="0" class="form-control form-control-sm text-end" name="einvoice[noteNumber]" value="{{ noteModel.einvoice.noteNumber }}" required>
+						</td>
+					</tr>
+				</table>
+			</div>
 			<table class="table table-sm table-bordered mt-3 align-middle">
 				<tr>
 					<th class="text-center">#</th>
