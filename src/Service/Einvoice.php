@@ -53,7 +53,10 @@ class Einvoice
     public function getXml(EinvoiceEntity $einvoice): \SimpleXMLElement
     {
         $einvoiceModel = $this->getModel($einvoice);
-        $this->s3->downloadZip($einvoiceModel);
+        $this->s3->downloadFile(
+            fileName: $einvoiceModel->getZipName(),
+            filePath: $einvoiceModel->getZipPath(),
+        );
         $this->extractZip($einvoiceModel);
         return $this->parseXml($einvoiceModel);
     }

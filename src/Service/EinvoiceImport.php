@@ -48,7 +48,10 @@ class EinvoiceImport
         }
         $einvoiceModel = $this->einvoice->getModel($einvoice);
         $this->anafEfactura->downloadZip($einvoiceModel);
-        $result = $this->s3->uploadZip($einvoiceModel);
+        $result = $this->s3->uploadFile(
+            fileName: $einvoiceModel->getZipName(),
+            filePath: $einvoiceModel->getZipPath(),
+        );
         $einvoice->setS3ZipModifiedAt(
             new \DateTimeImmutable($result['@metadata']['headers']['date'])
         );
@@ -84,7 +87,10 @@ class EinvoiceImport
         $this->anafEfactura->downloadZip($einvoiceModel);
         $this->einvoice->extractZip($einvoiceModel);
         $this->anafEfactura->downloadPdf($einvoiceModel);
-        $result = $this->s3->uploadPdf($einvoiceModel);
+        $result = $this->s3->uploadFile(
+            fileName: $einvoiceModel->getPdfName(),
+            filePath: $einvoiceModel->getPdfPath(),
+        );
         $einvoice->setS3PdfModifiedAt(
             new \DateTimeImmutable($result['@metadata']['headers']['date'])
         );

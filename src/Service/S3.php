@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Model\Einvoice\EinvoiceModel;
 use Aws\Result;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
@@ -44,22 +43,6 @@ class S3
         return $result;
     }
 
-    public function uploadZip(EinvoiceModel $einvoiceModel): Result
-    {
-        return $this->uploadFile(
-            fileName: $einvoiceModel->getZipName(),
-            filePath: $einvoiceModel->getZipPath(),
-        );
-    }
-
-    public function uploadPdf(EinvoiceModel $einvoiceModel): Result
-    {
-        return $this->uploadFile(
-            fileName: $einvoiceModel->getPdfName(),
-            filePath: $einvoiceModel->getPdfPath(),
-        );
-    }
-
     public function downloadFile(string $fileName, string $filePath): void
     {
         if ($this->filesystem->exists($filePath)) {
@@ -75,14 +58,6 @@ class S3
         $this->filesystem->dumpFile(
             filename: $filePath,
             content: $result['Body']
-        );
-    }
-
-    public function downloadZip(EinvoiceModel $einvoiceModel): void
-    {
-        $this->downloadFile(
-            fileName: $einvoiceModel->getZipName(),
-            filePath: $einvoiceModel->getZipPath(),
         );
     }
 
