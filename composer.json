@@ -4,30 +4,30 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-pgsql": "*",
         "ext-xml": "*",
         "ext-zip": "*",
-        "andalisolutions/anaf-php": "^0.7.4",
+        "andalisolutions/anaf-php": "^0.7.7",
         "andalisolutions/oauth2-anaf": "^1.0",
-        "aws/aws-sdk-php": "^3.339",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "^2.13",
-        "doctrine/doctrine-migrations-bundle": "^3.3",
-        "doctrine/orm": "^3.3",
-        "league/oauth2-google": "^4.0",
-        "symfony/console": "7.2.*",
-        "symfony/dotenv": "7.2.*",
-        "symfony/filesystem": "7.2.*",
-        "symfony/flex": "^2",
-        "symfony/framework-bundle": "7.2.*",
-        "symfony/messenger": "7.2.*",
-        "symfony/runtime": "7.2.*",
-        "symfony/security-bundle": "7.2.*",
-        "symfony/twig-bundle": "7.2.*",
-        "symfony/yaml": "7.2.*"
+        "aws/aws-sdk-php": "^3.353",
+        "doctrine/dbal": "^3.10.1",
+        "doctrine/doctrine-bundle": "^2.15.1",
+        "doctrine/doctrine-migrations-bundle": "^3.4.2",
+        "doctrine/orm": "^3.5.2",
+        "league/oauth2-google": "^4.0.1",
+        "symfony/console": "7.3.*",
+        "symfony/dotenv": "7.3.*",
+        "symfony/filesystem": "7.3.*",
+        "symfony/flex": "^2.8.1",
+        "symfony/framework-bundle": "7.3.*",
+        "symfony/messenger": "7.3.*",
+        "symfony/runtime": "7.3.*",
+        "symfony/security-bundle": "7.3.*",
+        "symfony/twig-bundle": "7.3.*",
+        "symfony/yaml": "7.3.*"
     },
     "config": {
         "allow-plugins": {
@@ -76,17 +76,16 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.2.*",
+            "require": "7.3.*",
             "docker": false
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "symfony/browser-kit": "7.2.*",
-        "symfony/css-selector": "7.2.*",
-        "symfony/maker-bundle": "^1.61",
-        "symfony/phpunit-bridge": "^7.2",
-        "symfony/stopwatch": "7.2.*",
-        "symfony/web-profiler-bundle": "7.1.*"
+        "phpunit/phpunit": "^12.3.4",
+        "symfony/browser-kit": "7.3.*",
+        "symfony/css-selector": "7.3.*",
+        "symfony/maker-bundle": "^1.64",
+        "symfony/stopwatch": "7.3.*",
+        "symfony/web-profiler-bundle": "7.3.*"
     }
 }

@@ -10,6 +10,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
+class S3ClientMock extends S3Client
+{
+    public function getObject() {}
+    public function putObject() {}
+}
+
 class S3Test extends KernelTestCase
 {
     private string $bucket = 'TEST_AWS_S3_BUCKET';
@@ -52,10 +58,7 @@ class S3Test extends KernelTestCase
     {
         $result = $this->_result();
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject', 'putObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Client->expects(static::once())
             ->method('getObject')
             ->with([
@@ -75,10 +78,7 @@ class S3Test extends KernelTestCase
     {
         $result = $this->_result(-1);
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject', 'putObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Client->expects(static::once())
             ->method('getObject')
             ->with([
@@ -99,10 +99,7 @@ class S3Test extends KernelTestCase
     {
         $result = $this->_result();
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject', 'putObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Exception = $this->getMockBuilder(S3Exception::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -139,10 +136,7 @@ class S3Test extends KernelTestCase
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Client->expects(static::never())
             ->method('getObject');
         static::getContainer()->set(S3Client::class, $s3Client);
@@ -162,10 +156,7 @@ class S3Test extends KernelTestCase
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Client->expects(static::once())
             ->method('getObject')
             ->with([
@@ -194,10 +185,7 @@ class S3Test extends KernelTestCase
             ->with($this->filePath, $result['Body']);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
-        $s3Client = $this->getMockBuilder(S3Client::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getObject'])
-            ->getMock();
+        $s3Client = $this->createMock(S3ClientMock::class);
         $s3Client->expects(static::once())
             ->method('getObject')
             ->with([
