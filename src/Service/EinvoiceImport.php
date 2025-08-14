@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use Anaf\Responses\Efactura\Message;
 use App\Entity\Einvoice as EinvoiceEntity;
 use App\Model\AnafEfactura\MessageModel;
 use App\Model\Einvoice\XmlModel;
@@ -18,17 +19,7 @@ class EinvoiceImport
         private S3 $s3,
     ) {}
 
-    public function import(): void
-    {
-        foreach ($this->anafEfactura->getMessages() as $message) {
-            $einvoice = $this->importMessage($message);
-            $this->importZip($einvoice);
-            $this->importXml($einvoice);
-            $this->importPdf($einvoice);
-        }
-    }
-
-    public function importMessage($message): EinvoiceEntity
+    public function importMessage(Message $message): EinvoiceEntity
     {
         if (!$einvoice = $this->einvoiceRepository->findOneBy(['messageId' => $message->id])) {
             $messageModel = new MessageModel($message);
