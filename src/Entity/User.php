@@ -4,9 +4,12 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity(fields: ['email'])]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface
 {
@@ -16,6 +19,8 @@ class User implements UserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $email = null;
 
     public function getId(): ?int

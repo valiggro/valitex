@@ -3,28 +3,26 @@
 namespace App\Command;
 
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\UserRepository;
+use App\Service\UserService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\{InputArgument, InputInterface};
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 
-#[AsCommand(name: 'app:user-create')]
+#[AsCommand(name: 'app:user:create')]
 class UserCreateCommand extends Command
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private UserRepository $userRepository,
+        private UserService $userService
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this
-            ->addArgument('email', InputArgument::REQUIRED);
+        $this->addArgument('email', InputArgument::REQUIRED);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -32,16 +30,17 @@ class UserCreateCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $email = $input->getArgument('email');
 
-        if ($this->userRepository->findOneBy(['email' => $email])) {
-            $io->note(sprintf('User %s already exists', $email));
+        $user = (new User())->setEmail($email);
+
+        try {
+            $this->userService->create($user);
+        } catch (ValidationFailedException $e) {
+            foreach ($e->getViolations() as $violation) {
+                $io->error($violation->getMessage());
+            }
             return Command::FAILURE;
         }
-
-        $user = (new User)
-            ->setEmail($email);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-        $io->success(sprintf('User %s created', $email));
+        $io->success("User '{$email}' created.");
         return Command::SUCCESS;
     }
 }
