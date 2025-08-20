@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use Anaf\Resources\Efactura as Client;
-use App\Model\Einvoice\EinvoiceModel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -34,51 +33,51 @@ class AnafEfactura
         });
     }
 
-    public function downloadZip(EinvoiceModel $einvoiceModel): void
+    public function downloadZip(int $id, string $zipPath): void
     {
-        if ($this->filesystem->exists($einvoiceModel->getZipPath())) {
+        if ($this->filesystem->exists($zipPath)) {
             return;
         }
 
         $parameters = [
-            'id' => $einvoiceModel->getEinvoice()->getMessageId(),
+            'id' => $id,
         ];
         $this->logger->info('Download zip from Anaf', $parameters);
         $fileContract = $this->client->download(parameters: $parameters);
         if (!$content = $fileContract->getContent()) {
-            throw new \Exception('Download zip from Anaf failed for id=' . $einvoiceModel->getEinvoice()->getMessageId());
+            throw new \Exception("Download zip from Anaf failed for id={$id}");
         }
 
-        $this->logger->info('Write file to disk', [
-            'filename' => $einvoiceModel->getZipPath(),
+        $this->logger->info('Write zip to disk', [
+            'zipPath' => $zipPath,
         ]);
         $this->filesystem->dumpFile(
-            filename: $einvoiceModel->getZipPath(),
+            filename: $zipPath,
             content: $content,
         );
     }
 
-    public function downloadPdf(EinvoiceModel $einvoiceModel): void
+    public function downloadPdf(string $xmlPath, string $pdfPath): void
     {
-        if ($this->filesystem->exists($einvoiceModel->getPdfPath())) {
+        if ($this->filesystem->exists($pdfPath)) {
             return;
         }
 
         $this->logger->info('Download pdf from Anaf', [
-            'xml_path' => $einvoiceModel->getXmlPath(),
+            'xml_path' => $xmlPath,
         ]);
         $fileContract = $this->client->xmlToPdf(
-            xml_path: $einvoiceModel->getXmlPath(),
+            xml_path: $xmlPath,
         );
         if (!$content = $fileContract->getContent()) {
-            throw new \Exception('Download pdf from Anaf failed for xml_path=' . $einvoiceModel->getXmlPath());
+            throw new \Exception("Download pdf from Anaf failed for xml_path={$xmlPath}");
         }
 
-        $this->logger->info('Write file to disk', [
-            'filename' => $einvoiceModel->getPdfPath(),
+        $this->logger->info('Write pdf to disk', [
+            'pdfPath' => $pdfPath,
         ]);
         $this->filesystem->dumpFile(
-            filename: $einvoiceModel->getPdfPath(),
+            filename: $pdfPath,
             content: $content,
         );
     }

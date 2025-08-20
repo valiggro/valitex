@@ -38,7 +38,10 @@ class EinvoiceImport
             return;
         }
         $einvoiceModel = $this->einvoice->getModel($einvoice);
-        $this->anafEfactura->downloadZip($einvoiceModel);
+        $this->anafEfactura->downloadZip(
+            id: $einvoice->getMessageId(),
+            zipPath: $einvoiceModel->getZipPath(),
+        );
         $result = $this->s3->uploadFile(
             fileName: $einvoiceModel->getZipName(),
             filePath: $einvoiceModel->getZipPath(),
@@ -56,7 +59,10 @@ class EinvoiceImport
             return;
         }
         $einvoiceModel = $this->einvoice->getModel($einvoice);
-        $this->anafEfactura->downloadZip($einvoiceModel);
+        $this->anafEfactura->downloadZip(
+            id: $einvoice->getMessageId(),
+            zipPath: $einvoiceModel->getZipPath(),
+        );
         $this->einvoice->extractZip($einvoiceModel);
         $simpleXml = $this->einvoice->parseXml($einvoiceModel);
         $xmlModel = new XmlModel($simpleXml);
@@ -75,9 +81,15 @@ class EinvoiceImport
             return;
         }
         $einvoiceModel = $this->einvoice->getModel($einvoice);
-        $this->anafEfactura->downloadZip($einvoiceModel);
+        $this->anafEfactura->downloadZip(
+            id: $einvoice->getMessageId(),
+            zipPath: $einvoiceModel->getZipPath(),
+        );
         $this->einvoice->extractZip($einvoiceModel);
-        $this->anafEfactura->downloadPdf($einvoiceModel);
+        $this->anafEfactura->downloadPdf(
+            xmlPath: $einvoiceModel->getXmlPath(),
+            pdfPath: $einvoiceModel->getPdfPath(),
+        );
         $result = $this->s3->uploadFile(
             fileName: $einvoiceModel->getPdfName(),
             filePath: $einvoiceModel->getPdfPath(),
