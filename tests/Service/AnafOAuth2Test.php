@@ -26,7 +26,7 @@ class AnafOAuth2Test extends KernelTestCase
         ]);
 
         $anafProvider = $this->createMock(AnafProvider::class);
-        $anafProvider->expects(static::once())
+        $anafProvider->expects($this->once())
             ->method('getAccessToken')
             ->with('authorization_code', [
                 'code' => $code,
@@ -35,7 +35,7 @@ class AnafOAuth2Test extends KernelTestCase
         static::getContainer()->set(AnafProvider::class, $anafProvider);
 
         $setting = $this->createMock(Setting::class);
-        $setting->expects(static::once())
+        $setting->expects($this->once())
             ->method('setMultiple')
             ->with([
                 'anaf_oauth2_access_token' => $accessToken->getToken(),
@@ -52,16 +52,16 @@ class AnafOAuth2Test extends KernelTestCase
     public function test_refreshToken_notYet(): void
     {
         $setting = $this->createMock(Setting::class);
-        $setting->expects(static::once())
+        $setting->expects($this->once())
             ->method('get')
             ->with('anaf_oauth2_access_token_expires')
             ->willReturn((string) (time() + 24 * 3600 + 1));
-        $setting->expects(static::never())
+        $setting->expects($this->never())
             ->method('setMultiple');
         static::getContainer()->set(Setting::class, $setting);
 
         $anafProvider = $this->createMock(AnafProvider::class);
-        $anafProvider->expects(static::never())
+        $anafProvider->expects($this->never())
             ->method('getAccessToken');
         static::getContainer()->set(AnafProvider::class, $anafProvider);
 
@@ -76,20 +76,20 @@ class AnafOAuth2Test extends KernelTestCase
             'anaf_oauth2_refresh_token_expires' => time() - 1,
         ];
         $setting = $this->createMock(Setting::class);
-        $setting->expects(static::exactly(count($settings)))
+        $setting->expects($this->exactly(count($settings)))
             ->method('get')
             ->with(
-                self::logicalOr(...array_keys($settings))
+                $this->logicalOr(...array_keys($settings))
             )
             ->willReturnCallback(
                 fn($k) => (string) $settings[$k]
             );
-        $setting->expects(static::never())
+        $setting->expects($this->never())
             ->method('setMultiple');
         static::getContainer()->set(Setting::class, $setting);
 
         $anafProvider = $this->createMock(AnafProvider::class);
-        $anafProvider->expects(static::never())
+        $anafProvider->expects($this->never())
             ->method('getAccessToken');
         static::getContainer()->set(AnafProvider::class, $anafProvider);
 
@@ -112,15 +112,15 @@ class AnafOAuth2Test extends KernelTestCase
             'anaf_oauth2_refresh_token' => $refreshToken,
         ];
         $setting = $this->createMock(Setting::class);
-        $setting->expects(static::exactly(count($settings)))
+        $setting->expects($this->exactly(count($settings)))
             ->method('get')
             ->with(
-                self::logicalOr(...array_keys($settings))
+                $this->logicalOr(...array_keys($settings))
             )
             ->willReturnCallback(
                 fn($k) => (string) $settings[$k]
             );
-        $setting->expects(static::once())
+        $setting->expects($this->once())
             ->method('setMultiple')
             ->with([
                 'anaf_oauth2_access_token' => $accessToken->getToken(),
@@ -129,7 +129,7 @@ class AnafOAuth2Test extends KernelTestCase
         static::getContainer()->set(Setting::class, $setting);
 
         $anafProvider = $this->createMock(AnafProvider::class);
-        $anafProvider->expects(static::once())
+        $anafProvider->expects($this->once())
             ->method('getAccessToken')
             ->with('refresh_token', [
                 'refresh_token' => $refreshToken,

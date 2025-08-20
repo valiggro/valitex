@@ -59,14 +59,14 @@ class S3Test extends KernelTestCase
         $result = $this->_result();
 
         $s3Client = $this->createMock(S3ClientMock::class);
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
                 'Key' => $this->fileName,
             ])
             ->willReturn($result);
-        $s3Client->expects(static::never())
+        $s3Client->expects($this->never())
             ->method('putObject');
         static::getContainer()->set(S3Client::class, $s3Client);
 
@@ -79,14 +79,14 @@ class S3Test extends KernelTestCase
         $result = $this->_result(-1);
 
         $s3Client = $this->createMock(S3ClientMock::class);
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
                 'Key' => $this->fileName,
             ])
             ->willReturn($result);
-        $s3Client->expects(static::never())
+        $s3Client->expects($this->never())
             ->method('putObject');
         static::getContainer()->set(S3Client::class, $s3Client);
 
@@ -103,14 +103,14 @@ class S3Test extends KernelTestCase
         $s3Exception = $this->getMockBuilder(S3Exception::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
                 'Key' => $this->fileName,
             ])
             ->willThrowException($s3Exception);
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('putObject')
             ->with([
                 'Bucket' => $this->bucket,
@@ -130,14 +130,14 @@ class S3Test extends KernelTestCase
     public function test_downloadFile_exists(): void
     {
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('exists')
             ->with($this->filePath)
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $s3Client = $this->createMock(S3ClientMock::class);
-        $s3Client->expects(static::never())
+        $s3Client->expects($this->never())
             ->method('getObject');
         static::getContainer()->set(S3Client::class, $s3Client);
 
@@ -150,14 +150,14 @@ class S3Test extends KernelTestCase
         $result = $this->_result(-1);
 
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('exists')
             ->with($this->filePath)
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $s3Client = $this->createMock(S3ClientMock::class);
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,
@@ -176,17 +176,17 @@ class S3Test extends KernelTestCase
         $result = $this->_result();
 
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('exists')
             ->with($this->filePath)
             ->willReturn(false);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('dumpFile')
             ->with($this->filePath, $result['Body']);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $s3Client = $this->createMock(S3ClientMock::class);
-        $s3Client->expects(static::once())
+        $s3Client->expects($this->once())
             ->method('getObject')
             ->with([
                 'Bucket' => $this->bucket,

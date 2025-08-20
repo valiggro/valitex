@@ -30,14 +30,14 @@ class EinvoiceTest extends KernelTestCase
         $einvoiceModel = $this->_einvoiceModel();
 
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('exists')
             ->with($einvoiceModel->getZipExtractPath())
             ->willReturn(true);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $zipArchiveFactory = $this->createMock(ZipArchiveFactory::class);
-        $zipArchiveFactory->expects(static::never())
+        $zipArchiveFactory->expects($this->never())
             ->method('__invoke');
         static::getContainer()->set(ZipArchiveFactory::class, $zipArchiveFactory);
 
@@ -50,25 +50,25 @@ class EinvoiceTest extends KernelTestCase
         $einvoiceModel = $this->_einvoiceModel();
 
         $filesystem = $this->createMock(Filesystem::class);
-        $filesystem->expects(static::once())
+        $filesystem->expects($this->once())
             ->method('exists')
             ->with($einvoiceModel->getZipExtractPath())
             ->willReturn(false);
         static::getContainer()->set(Filesystem::class, $filesystem);
 
         $zipArchive = $this->createMock(\ZipArchive::class);
-        $zipArchive->expects(static::once())
+        $zipArchive->expects($this->once())
             ->method('open')
             ->with($einvoiceModel->getZipPath());
-        $zipArchive->expects(static::once())
+        $zipArchive->expects($this->once())
             ->method('extractTo')
             ->with($einvoiceModel->getZipExtractPath());
-        $zipArchive->expects(static::once())
+        $zipArchive->expects($this->once())
             ->method('close')
             ->with();
 
         $zipArchiveFactory = $this->createMock(ZipArchiveFactory::class);
-        $zipArchiveFactory->expects(static::once())
+        $zipArchiveFactory->expects($this->once())
             ->method('__invoke')
             ->with()
             ->willReturn($zipArchive);
