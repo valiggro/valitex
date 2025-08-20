@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Anaf\Resources\Efactura as Client;
 use App\Model\Einvoice\EinvoiceModel;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -16,6 +17,7 @@ class AnafEfactura
         private Client $client,
         private ContainerBagInterface $containerBag,
         private Filesystem $filesystem,
+        private LoggerInterface $logger,
     ) {}
 
     public function getMessages(): array
@@ -23,10 +25,12 @@ class AnafEfactura
         return $this->cache->get(__METHOD__, function (ItemInterface $item) {
             $item->expiresAfter(3600);
 
-            return $this->client->messages([
+            $parameters = [
                 'cif' => $this->containerBag->get('anaf.cif'),
                 'zile' => 45,
-            ])->messages;
+            ];
+            $this->logger->info('Get messages from Anaf', $parameters);
+            return $this->client->messages(parameters: $parameters)->messages;
         });
     }
 
@@ -35,12 +39,19 @@ class AnafEfactura
         if ($this->filesystem->exists($einvoiceModel->getZipPath())) {
             return;
         }
-        $fileContract = $this->client->download([
+
+        $parameters = [
             'id' => $einvoiceModel->getEinvoice()->getMessageId(),
-        ]);
+        ];
+        $this->logger->info('Download zip from Anaf', $parameters);
+        $fileContract = $this->client->download(parameters: $parameters);
         if (!$content = $fileContract->getContent()) {
-            throw new \Exception($einvoiceModel->getZipName());
+            throw new \Exception('Download zip from Anaf failed for id=' . $einvoiceModel->getEinvoice()->getMessageId());
         }
+
+        $this->logger->info('Write file to disk', [
+            'filename' => $einvoiceModel->getZipPath(),
+        ]);
         $this->filesystem->dumpFile(
             filename: $einvoiceModel->getZipPath(),
             content: $content,
@@ -52,12 +63,20 @@ class AnafEfactura
         if ($this->filesystem->exists($einvoiceModel->getPdfPath())) {
             return;
         }
+
+        $this->logger->info('Download pdf from Anaf', [
+            'xml_path' => $einvoiceModel->getXmlPath(),
+        ]);
         $fileContract = $this->client->xmlToPdf(
             xml_path: $einvoiceModel->getXmlPath(),
         );
         if (!$content = $fileContract->getContent()) {
-            throw new \Exception($einvoiceModel->getPdfName());
+            throw new \Exception('Download pdf from Anaf failed for xml_path=' . $einvoiceModel->getXmlPath());
         }
+
+        $this->logger->info('Write file to disk', [
+            'filename' => $einvoiceModel->getPdfPath(),
+        ]);
         $this->filesystem->dumpFile(
             filename: $einvoiceModel->getPdfPath(),
             content: $content,
