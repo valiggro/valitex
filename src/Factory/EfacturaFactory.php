@@ -14,7 +14,7 @@ class EfacturaFactory
     public function __invoke(): Efactura
     {
         if (time() > $this->setting->get('anaf_oauth2_access_token_expires')) {
-            throw new \Exception;
+            throw new \Exception('Anaf OAuth2 refresh token expired');
         }
         $client = \Anaf::authorizedClient(
             apiKey: $this->setting->get('anaf_oauth2_access_token'),
