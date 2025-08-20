@@ -22,6 +22,6 @@ class GoogleOauth2Controller extends AbstractController
     #[Route('/google-oauth2-callback')]
     public function callback(): Response
     {
-        throw new \Exception;
+        throw new \Exception('Not implemented');
     }
 }
