@@ -26,7 +26,7 @@ final class NoteController extends AbstractController
         }
         return $this->render('note/print.html.twig', [
             'einvoice' => $einvoice,
-            'simpleXml' => $this->einvoice->getXml($einvoice),
+            'simpleXml' => $this->einvoice->getXmlModel($einvoice)->getSimpleXml(),
         ]);
     }
 

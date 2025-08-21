@@ -50,7 +50,7 @@ class Einvoice
         return simplexml_load_string($xml);
     }
 
-    public function getXml(EinvoiceEntity $einvoice): \SimpleXMLElement
+    public function getXmlModel(EinvoiceEntity $einvoice): XmlModel
     {
         $einvoiceModel = $this->getModel($einvoice);
         $this->s3->downloadFile(
@@ -58,12 +58,8 @@ class Einvoice
             filePath: $einvoiceModel->getZipPath(),
         );
         $this->extractZip($einvoiceModel);
-        return $this->parseXml($einvoiceModel);
-    }
-
-    public function getXmlModel(EinvoiceEntity $einvoice): XmlModel
-    {
-        return new XmlModel($this->getXml($einvoice));
+        $simpleXml = $this->parseXml($einvoiceModel);
+        return new XmlModel($simpleXml);
     }
 
     public function getPdfUrl(EinvoiceEntity $einvoice): string
