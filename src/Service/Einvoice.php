@@ -3,19 +3,16 @@
 namespace App\Service;
 
 use App\Entity\Einvoice as EinvoiceEntity;
-use App\Factory\ZipArchiveFactory;
 use App\Model\Einvoice\EinvoiceModel;
 use App\Model\Einvoice\XmlModel;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 class Einvoice
 {
     public function __construct(
         private ContainerBagInterface $containerBag,
-        private Filesystem $filesystem,
+        private FileService $fileService,
         private S3 $s3,
-        private ZipArchiveFactory $zipArchiveFactory,
     ) {}
 
     public function getModel(EinvoiceEntity $einvoice): EinvoiceModel
@@ -26,30 +23,6 @@ class Einvoice
         );
     }
 
-    public function extractZip(EinvoiceModel $einvoiceModel): void
-    {
-        if ($this->filesystem->exists($einvoiceModel->getZipExtractPath())) {
-            return;
-        }
-        $zipArchive = $this->zipArchiveFactory->__invoke();
-        $zipArchive->open($einvoiceModel->getZipPath());
-        $zipArchive->extractTo($einvoiceModel->getZipExtractPath());
-        $zipArchive->close();
-    }
-
-    public function parseXml(EinvoiceModel $einvoiceModel): \SimpleXMLElement
-    {
-        $xml = $this->filesystem->readFile(
-            filename: $einvoiceModel->getXmlPath()
-        );
-        $simpleXml = simplexml_load_string($xml);
-        foreach ($simpleXml->getNamespaces(true) as $namespace => $url) {
-            $xml = str_replace("<{$namespace}:", '<', $xml);
-            $xml = str_replace("</{$namespace}:", '</', $xml);
-        }
-        return simplexml_load_string($xml);
-    }
-
     public function getXmlModel(EinvoiceEntity $einvoice): XmlModel
     {
         $einvoiceModel = $this->getModel($einvoice);
@@ -57,8 +30,13 @@ class Einvoice
             fileName: $einvoiceModel->getZipName(),
             filePath: $einvoiceModel->getZipPath(),
         );
-        $this->extractZip($einvoiceModel);
-        $simpleXml = $this->parseXml($einvoiceModel);
+        $this->fileService->extractZip(
+            zipPath: $einvoiceModel->getZipPath(),
+            extractPath: $einvoiceModel->getZipExtractPath(),
+        );
+        $simpleXml = $this->fileService->parseXml(
+            xmlPath: $einvoiceModel->getXmlPath(),
+        );
         return new XmlModel($simpleXml);
     }
 

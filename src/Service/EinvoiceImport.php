@@ -16,6 +16,7 @@ class EinvoiceImport
         private Einvoice $einvoice,
         private AnafEfactura $anafEfactura,
         private EntityManagerInterface $entityManager,
+        private FileService $fileService,
         private S3 $s3,
     ) {}
 
@@ -63,8 +64,13 @@ class EinvoiceImport
             id: $einvoice->getMessageId(),
             zipPath: $einvoiceModel->getZipPath(),
         );
-        $this->einvoice->extractZip($einvoiceModel);
-        $simpleXml = $this->einvoice->parseXml($einvoiceModel);
+        $this->fileService->extractZip(
+            zipPath: $einvoiceModel->getZipPath(),
+            extractPath: $einvoiceModel->getZipExtractPath(),
+        );
+        $simpleXml = $this->fileService->parseXml(
+            xmlPath: $einvoiceModel->getXmlPath(),
+        );
         $xmlModel = new XmlModel($simpleXml);
         $einvoice
             ->setSupplierName($xmlModel->getSupplierName())
@@ -85,7 +91,10 @@ class EinvoiceImport
             id: $einvoice->getMessageId(),
             zipPath: $einvoiceModel->getZipPath(),
         );
-        $this->einvoice->extractZip($einvoiceModel);
+        $this->fileService->extractZip(
+            zipPath: $einvoiceModel->getZipPath(),
+            extractPath: $einvoiceModel->getZipExtractPath(),
+        );
         $this->anafEfactura->downloadPdf(
             xmlPath: $einvoiceModel->getXmlPath(),
             pdfPath: $einvoiceModel->getPdfPath(),
