@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use Anaf\Responses\Efactura\Message;
-use App\Entity\Einvoice as EinvoiceEntity;
+use App\Entity\Einvoice;
 use App\Model\AnafEfactura\MessageModel;
 use App\Model\Einvoice\XmlModel;
 use App\Repository\EinvoiceRepository;
@@ -13,18 +13,18 @@ class EinvoiceImport
 {
     public function __construct(
         private EinvoiceRepository $einvoiceRepository,
-        private Einvoice $einvoice,
+        private EinvoiceService $einvoiceService,
         private AnafEfactura $anafEfactura,
         private EntityManagerInterface $entityManager,
         private FileService $fileService,
         private S3 $s3,
     ) {}
 
-    public function importMessage(Message $message): EinvoiceEntity
+    public function importMessage(Message $message): Einvoice
     {
         if (!$einvoice = $this->einvoiceRepository->findOneBy(['messageId' => $message->id])) {
             $messageModel = new MessageModel($message);
-            $einvoice = (new EinvoiceEntity)
+            $einvoice = (new Einvoice)
                 ->setMessage($message)
                 ->setSupplierId($messageModel->getSupplierId());
             $this->entityManager->persist($einvoice);
@@ -33,12 +33,12 @@ class EinvoiceImport
         return $einvoice;
     }
 
-    public function importZip(EinvoiceEntity $einvoice): void
+    public function importZip(Einvoice $einvoice): void
     {
         if ($einvoice->hasZip()) {
             return;
         }
-        $einvoiceModel = $this->einvoice->getModel($einvoice);
+        $einvoiceModel = $this->einvoiceService->getModel($einvoice);
         $this->anafEfactura->downloadZip(
             id: $einvoice->getMessageId(),
             zipPath: $einvoiceModel->getZipPath(),
@@ -54,12 +54,12 @@ class EinvoiceImport
         $this->entityManager->flush();
     }
 
-    public function importXml(EinvoiceEntity $einvoice): void
+    public function importXml(Einvoice $einvoice): void
     {
         if ($einvoice->hasXml()) {
             return;
         }
-        $einvoiceModel = $this->einvoice->getModel($einvoice);
+        $einvoiceModel = $this->einvoiceService->getModel($einvoice);
         $this->anafEfactura->downloadZip(
             id: $einvoice->getMessageId(),
             zipPath: $einvoiceModel->getZipPath(),
@@ -81,12 +81,12 @@ class EinvoiceImport
         $this->entityManager->flush();
     }
 
-    public function importPdf(EinvoiceEntity $einvoice): void
+    public function importPdf(Einvoice $einvoice): void
     {
         if ($einvoice->hasPdf()) {
             return;
         }
-        $einvoiceModel = $this->einvoice->getModel($einvoice);
+        $einvoiceModel = $this->einvoiceService->getModel($einvoice);
         $this->anafEfactura->downloadZip(
             id: $einvoice->getMessageId(),
             zipPath: $einvoiceModel->getZipPath(),

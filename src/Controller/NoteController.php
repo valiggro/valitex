@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Einvoice as EinvoiceEntity;
-use App\Service\Einvoice;
+use App\Entity\Einvoice;
+use App\Service\EinvoiceService;
 use App\Service\Note;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,24 +14,24 @@ use Symfony\Component\Routing\Annotation\Route;
 final class NoteController extends AbstractController
 {
     public function __construct(
-        private Einvoice $einvoice,
+        private EinvoiceService $einvoiceService,
         private Note $note,
     ) {}
 
     #[Route('/print/{id}')]
-    public function print(EinvoiceEntity $einvoice, Request $request): Response
+    public function print(Einvoice $einvoice, Request $request): Response
     {
         if (!$einvoice->getNoteNumber()) {
             return $this->redirectToRoute('app_note_form', ['id' => $einvoice->getId(), 'redirect' => $request->query->get('redirect')]);
         }
         return $this->render('note/print.html.twig', [
             'einvoice' => $einvoice,
-            'simpleXml' => $this->einvoice->getXmlModel($einvoice)->getSimpleXml(),
+            'simpleXml' => $this->einvoiceService->getXmlModel($einvoice)->getSimpleXml(),
         ]);
     }
 
     #[Route('/form/{id}')]
-    public function form(EinvoiceEntity $einvoice, Request $request): Response
+    public function form(Einvoice $einvoice, Request $request): Response
     {
         if ($einvoice->getNoteNumber()) {
             return $this->redirectToRoute('app_note_print', ['id' => $einvoice->getId(), 'redirect' => $request->query->get('redirect')]);
@@ -56,7 +56,7 @@ final class NoteController extends AbstractController
     }
 
     #[Route('/remove/{id}')]
-    public function remove(EinvoiceEntity $einvoice, Request $request): Response
+    public function remove(Einvoice $einvoice, Request $request): Response
     {
         $this->note->removeNote($einvoice);
         $this->addFlash('success', 'Am șters nota!');

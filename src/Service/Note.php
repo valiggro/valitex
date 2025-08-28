@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Entity\Einvoice as EinvoiceEntity;
+use App\Entity\Einvoice;
 use App\Entity\EinvoiceItem;
 use App\Model\Note\ItemModel;
 use App\Model\Note\NoteModel;
@@ -13,16 +13,16 @@ class Note
 {
     public function __construct(
         private EinvoiceItemRepository $einvoiceItemRepository,
-        private Einvoice $einvoice,
+        private EinvoiceService $einvoiceService,
         private EntityManagerInterface $entityManager,
         private Setting $setting,
     ) {}
 
-    public function getModel(EinvoiceEntity $einvoice): NoteModel
+    public function getModel(Einvoice $einvoice): NoteModel
     {
         $einvoice->setNoteNumber($this->setting->get('note_last_number') + 1);
 
-        $xmlModel = $this->einvoice->getXmlModel($einvoice);
+        $xmlModel = $this->einvoiceService->getXmlModel($einvoice);
         $noteModel = new NoteModel(
             einvoice: $einvoice,
             xmlModel: $xmlModel,
@@ -107,7 +107,7 @@ class Note
         $this->setting->set('note_last_number', $einvoice->getNoteNumber());
     }
 
-    public function removeNote(EinvoiceEntity $einvoice): void
+    public function removeNote(Einvoice $einvoice): void
     {
         $einvoice->setNoteNumber(0);
         $this->entityManager->persist($einvoice);

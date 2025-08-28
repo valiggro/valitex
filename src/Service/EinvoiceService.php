@@ -2,12 +2,12 @@
 
 namespace App\Service;
 
-use App\Entity\Einvoice as EinvoiceEntity;
+use App\Entity\Einvoice;
 use App\Model\Einvoice\EinvoiceModel;
 use App\Model\Einvoice\XmlModel;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
-class Einvoice
+class EinvoiceService
 {
     public function __construct(
         private ContainerBagInterface $containerBag,
@@ -15,7 +15,7 @@ class Einvoice
         private S3 $s3,
     ) {}
 
-    public function getModel(EinvoiceEntity $einvoice): EinvoiceModel
+    public function getModel(Einvoice $einvoice): EinvoiceModel
     {
         return new EinvoiceModel(
             einvoice: $einvoice,
@@ -23,7 +23,7 @@ class Einvoice
         );
     }
 
-    public function getXmlModel(EinvoiceEntity $einvoice): XmlModel
+    public function getXmlModel(Einvoice $einvoice): XmlModel
     {
         $einvoiceModel = $this->getModel($einvoice);
         $this->s3->downloadFile(
@@ -40,7 +40,7 @@ class Einvoice
         return new XmlModel($simpleXml);
     }
 
-    public function getPdfUrl(EinvoiceEntity $einvoice): string
+    public function getPdfUrl(Einvoice $einvoice): string
     {
         $einvoiceModel = $this->getModel($einvoice);
         return $this->s3->getPresignedUrl(
