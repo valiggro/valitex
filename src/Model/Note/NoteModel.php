@@ -39,12 +39,12 @@ class NoteModel
 
     public function setItemModel(ItemModel $itemModel): static
     {
-        $this->itemModels[$itemModel->getXmlModel()->getId()] = $itemModel;
+        $this->itemModels[(string) $itemModel->getXmlModel()->getId()] = $itemModel;
 
         return $this;
     }
 
-    public function getItemModel(int $id): ItemModel
+    public function getItemModel(string $id): ItemModel
     {
         return $this->itemModels[$id];
     }

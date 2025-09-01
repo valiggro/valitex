@@ -41,10 +41,9 @@ final class NoteController extends AbstractController
         if ($request->isMethod('POST')) {
             $noteModel->setNumber($request->get('note')['number']);
             foreach ($request->get('item') as $id => $item) {
-                $itemModel = $noteModel->getItemModel((int) $id)
+                $noteModel->getItemModel((string) $id)
                     ->setNameMatch($item['nameMatch'])
                     ->setSellPrice($item['sellPrice']);
-                $noteModel->setItemModel($itemModel);
             }
             $this->note->createNote($noteModel);
             return $this->redirectToRoute('app_note_print', ['id' => $einvoice->getId(), 'redirect' => $request->query->get('redirect')]);
