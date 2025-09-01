@@ -20,10 +20,9 @@ class Note
 
     public function getModel(Einvoice $einvoice): NoteModel
     {
-        $einvoice->setNoteNumber($this->setting->get('note_last_number') + 1);
-
         $xmlModel = $this->einvoiceService->getXmlModel($einvoice);
         $noteModel = new NoteModel(
+            number: $this->setting->get('note_last_number') + 1,
             einvoice: $einvoice,
             xmlModel: $xmlModel,
         );
@@ -93,7 +92,7 @@ class Note
         }
 
         # einvoice
-        # Einvoice::setNoteNumber() is set in static::getModel()
+        $einvoice->setNoteNumber($noteModel->getNumber());
         $sellPrice = [];
         foreach ($noteModel->getItemModels() as $itemModel) {
             $xmlModel = $itemModel->getXmlModel();

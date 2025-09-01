@@ -39,7 +39,7 @@ final class NoteController extends AbstractController
         $noteModel = $this->note->getModel($einvoice);
 
         if ($request->isMethod('POST')) {
-            $noteModel->getEinvoice()->setNoteNumber($request->get('einvoice')['noteNumber']);
+            $noteModel->setNumber($request->get('note')['number']);
             foreach ($request->get('item') as $id => $item) {
                 $itemModel = $noteModel->getItemModel((int) $id)
                     ->setNameMatch($item['nameMatch'])

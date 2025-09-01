@@ -10,9 +10,22 @@ class NoteModel
     private array $itemModels = [];
 
     public function __construct(
+        private int $number,
         private Einvoice $einvoice,
         private XmlModel $xmlModel,
     ) {}
+
+    public function setNumber(int $number): static
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    public function getNumber(): int
+    {
+        return $this->number;
+    }
 
     public function getEinvoice(): Einvoice
     {
