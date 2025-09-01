@@ -13,7 +13,12 @@ class NoteModel
         private int $number,
         private Einvoice $einvoice,
         private XmlModel $xmlModel,
-    ) {}
+        array $itemModels,
+    ) {
+        foreach ($itemModels as $itemModel) {
+            $this->setItemModel($itemModel);
+        }
+    }
 
     public function setNumber(int $number): static
     {
@@ -37,7 +42,7 @@ class NoteModel
         return $this->xmlModel;
     }
 
-    public function setItemModel(ItemModel $itemModel): static
+    private function setItemModel(ItemModel $itemModel): static
     {
         $this->itemModels[(string) $itemModel->getXmlModel()->getId()] = $itemModel;
 

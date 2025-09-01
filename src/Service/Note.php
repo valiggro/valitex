@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Einvoice;
 use App\Entity\EinvoiceItem;
+use App\Model\Einvoice\XmlLineModel;
 use App\Model\Note\ItemModel;
 use App\Model\Note\NoteModel;
 use App\Repository\EinvoiceItemRepository;
@@ -18,55 +19,34 @@ class Note
         private Setting $setting,
     ) {}
 
+    private function getItemModel(Einvoice $einvoice, XmlLineModel $xmlLineModel): ItemModel
+    {
+        $byMatch = $this->einvoiceItemRepository->findOneByNameMatch(
+            supplierId: $einvoice->getSupplierId(),
+            price: $xmlLineModel->getPriceAmount(),
+            nameMatch: $xmlLineModel->getName(),
+        );
+        $byPrice = $byMatch ?: $this->einvoiceItemRepository->findOneByPrice(
+            supplierId: $einvoice->getSupplierId(),
+            price: $xmlLineModel->getPriceAmount(),
+        );
+        return new ItemModel(
+            xmlModel: $xmlLineModel,
+            nameMatch: $byMatch ? $byMatch->getNameMatch() : null,
+            sellPrice: $byMatch ? $byMatch->getSellPrice() : null,
+            suggestedRetailPrice: $byPrice ? $byPrice->getSellPrice() : null,
+        );
+    }
+
     public function getModel(Einvoice $einvoice): NoteModel
     {
         $xmlModel = $this->einvoiceService->getXmlModel($einvoice);
-        $noteModel = new NoteModel(
+        return new NoteModel(
             number: $this->setting->get('note_last_number') + 1,
             einvoice: $einvoice,
             xmlModel: $xmlModel,
+            itemModels: array_map(fn($xmlLineModel) => $this->getItemModel($einvoice, $xmlLineModel), $xmlModel->getLines()),
         );
-        foreach ($xmlModel->getLines() as $xmlLineModel) {
-            $itemModel = new ItemModel(
-                xmlModel: $xmlLineModel,
-            );
-
-            $items = $this->einvoiceItemRepository->findBy([
-                'supplierId' => $einvoice->getSupplierId(),
-                'price' => $xmlLineModel->getPriceAmount(),
-            ], [
-                'sellPrice' => 'DESC'
-            ]);
-            $items = array_values(array_filter($items, function ($item) {
-                return $item->getPrice() != $item->getSellPrice();
-            }));
-            foreach ($items as $item) {
-                if (substr_count($itemModel->getNameMatch(), $item->getNameMatch())) {
-                    $itemModel->setNameMatch($item->getNameMatch());
-                    $itemModel->setSellPrice($item->getSellPrice());
-                    break;
-                }
-            }
-
-            $s1 = null;
-            $InvoiceLine = $xmlLineModel->getSimpleXml();
-            foreach ($InvoiceLine->Item->AdditionalItemProperty as $p) {
-                if ('Suggested Retail Price' == $p->Name) {
-                    $s1 = (float) $p->Value;
-                    if ('XCS' == $InvoiceLine->InvoicedQuantity['unitCode']) {
-                        $s1 *= 10;
-                    }
-                    break;
-                }
-            }
-            $itemModel->addSellPriceSuggestion($s1);
-
-            $s2 = $items ? $items[0]->getSellPrice() : null;
-            $itemModel->addSellPriceSuggestion($s2);
-
-            $noteModel->setItemModel($itemModel);
-        }
-        return $noteModel;
     }
 
     public function createNote(NoteModel $noteModel): void

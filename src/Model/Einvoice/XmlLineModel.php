@@ -37,4 +37,18 @@ class XmlLineModel
     {
         return (float) $this->InvoiceLine->Price->PriceAmount;
     }
+
+    public function getSuggestedRetailPrice(): ?float
+    {
+        foreach ($this->InvoiceLine->Item->AdditionalItemProperty as $property) {
+            if ((string) $property->Name === 'Suggested Retail Price') {
+                $price = (float) $property->Value;
+                if ((string) $this->InvoiceLine->InvoicedQuantity['unitCode'] === 'XCS') {
+                    $price *= 10;
+                }
+                return $price;
+            }
+        }
+        return null;
+    }
 }

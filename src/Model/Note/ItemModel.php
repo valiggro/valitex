@@ -6,14 +6,15 @@ use App\Model\Einvoice\XmlLineModel;
 
 class ItemModel
 {
-    private string $nameMatch;
-    private ?float $sellPrice = null;
-    private array $sellPriceSuggestions = [];
-
     public function __construct(
         private XmlLineModel $xmlModel,
+        private ?string $nameMatch,
+        private ?float $sellPrice,
+        private ?float $suggestedRetailPrice,
     ) {
-        $this->nameMatch = $this->xmlModel->getName();
+        if (empty($this->nameMatch)) {
+            $this->nameMatch = $this->xmlModel->getName();
+        }
     }
 
     public function getXmlModel(): XmlLineModel
@@ -45,16 +46,9 @@ class ItemModel
         return $this->sellPrice;
     }
 
-    public function addSellPriceSuggestion(?float $sellPriceSuggestion): static
+    public function getSuggestedRetailPrice(): ?float
     {
-        $this->sellPriceSuggestions[] = $sellPriceSuggestion;
-
-        return $this;
-    }
-
-    public function getSellPriceSuggestions(): array
-    {
-        return $this->sellPriceSuggestions;
+        return $this->suggestedRetailPrice;
     }
 
     public function getNote(): ?string
