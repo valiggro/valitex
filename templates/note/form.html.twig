@@ -6,7 +6,7 @@
 
 {% block content %}
 	<div class="container py-3">
-		<form method="post">
+		{{ form_start(form) }}
 			<div class="text-center">
 				<h4>{{ noteModel.xmlModel.supplierName }}</h4>
 				<table class="table table-borderless mx-auto w-auto text-nowrap">
@@ -19,7 +19,7 @@
 						<td>|</td>
 						<th>NIR:</th>
 						<td>
-							<input type="number" min="0" class="form-control form-control-sm text-end" name="note[number]" value="{{ noteModel.number }}" required>
+							{{ form_widget(form.number, { attr: { class: 'form-control-sm text-end' } }) }}
 						</td>
 					</tr>
 				</table>
@@ -34,14 +34,15 @@
 					<th class="text-center">Sugestie<br>oficială</th>
 					<th class="text-center">Sugestie<br>neoficială</th>
 				</tr>
-				{% for itemModel in noteModel.itemModels %}
+				{% for itemId, itemModel in noteModel.itemModels %}
+					{% set formItemModel = form.itemModels[itemId] %}
 					{% set inputClass = 'form-control rounded-0 ' ~ (itemModel.sellPrice ? 'text-secondary' : 'border-dark') %}
 					<tr>
 						<td class="text-secondary text-center p-0" style="width: 30px;">
 							{{ itemModel.xmlModel.id }}
 						</td>
 						<td class="p-0">
-							<input type="text" name="item[{{ itemModel.xmlModel.id }}][nameMatch]" class="{{ inputClass }}" value="{{ itemModel.nameMatch }}" required>
+							{{ form_widget(formItemModel.nameMatch, { attr: { class: inputClass } }) }}
 						</td>
 						<td class="text-secondary small lh-1">
 							<div>{{ itemModel.xmlModel.name }}</div>
@@ -54,7 +55,7 @@
 							</button>
 						</td>
 						<td class="p-0" style="width: 110px;">
-							<input type="number" min="0" step="0.01" name="item[{{ itemModel.xmlModel.id }}][sellPrice]" class="{{ inputClass }} text-end" value="{{ itemModel.sellPrice }}" required>
+							{{ form_widget(formItemModel.sellPrice, { attr: { class: inputClass ~ ' text-end' } }) }}
 						</td>
 						{% for s in [itemModel.xmlModel.suggestedRetailPrice, itemModel.suggestedRetailPrice] %}
 							<td class="p-1" style="width: 100px;">
@@ -76,6 +77,6 @@
 				<i class="bi bi-printer"></i>
 				Imprimă
 			</button>
-		</form>
+		{{ form_end(form) }}
 	</div>
 {% endblock %}

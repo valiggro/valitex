@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Einvoice;
+use App\Form\Note\NoteType;
 use App\Service\EinvoiceService;
 use App\Service\Note;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,21 +37,20 @@ final class NoteController extends AbstractController
         if ($einvoice->getNoteNumber()) {
             return $this->redirectToRoute('app_note_print', ['id' => $einvoice->getId(), 'redirect' => $request->query->get('redirect')]);
         }
-        $noteModel = $this->note->getModel($einvoice);
 
-        if ($request->isMethod('POST')) {
-            $noteModel->setNumber($request->get('note')['number']);
-            foreach ($request->get('item') as $id => $item) {
-                $noteModel->getItemModel((string) $id)
-                    ->setNameMatch($item['nameMatch'])
-                    ->setSellPrice($item['sellPrice']);
-            }
+        $noteModel = $this->note->getModel($einvoice);
+        $form = $this->createForm(NoteType::class, $noteModel);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->note->createNote($noteModel);
             return $this->redirectToRoute('app_note_print', ['id' => $einvoice->getId(), 'redirect' => $request->query->get('redirect')]);
         }
 
         return $this->render('note/form.html.twig', [
             'noteModel' => $noteModel,
+            'form' => $form,
         ]);
     }
 
