@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block body %}
-	Unitatea S.C. VALITEX S.R.L.
+	Unitatea {{ company.name }}
 	<div class="text-center">
 		<h5 class="mb-0">
 			Nota de intrare receptie nr.
@@ -17,7 +17,7 @@
 		</div>
 	</div>
 	<div class="mt-2">
-		Se receptioneaza marfurile furnizate de S.C.
+		Se receptioneaza marfurile furnizate de
 		{{ simpleXml.AccountingSupplierParty.Party.PartyLegalEntity.RegistrationName }}
 		din localitatea
 		{{ simpleXml.AccountingSupplierParty.Party.PostalAddress.CityName }}
@@ -150,7 +150,7 @@
 		<div class="col-4 text-center">
 			COMISIA DE RECEPTIE<br>
 			<small>(semnat.)</small><br>
-			Gheorghe Florica
+			{{ company.contact_person }}
 		</div>
 		<div class="col"></div>
 		<div class="col-4 text-center">

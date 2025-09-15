@@ -1,6 +1,10 @@
 twig:
     file_name_pattern: '*.twig'
     form_themes: ['bootstrap_5_layout.html.twig']
+    globals:
+        company:
+            name: '%company.name%'
+            contact_person: '%company.contact_person%'
 
 when@test:
     twig:

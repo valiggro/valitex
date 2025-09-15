@@ -4,7 +4,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    anaf.cif: 17261221 # S.C. Valitex S.R.L.
+    company.code: '%env(COMPANY_CODE)%'
+    company.name: '%env(COMPANY_NAME)%'
+    company.contact_person: '%env(COMPANY_CONTACT_PERSON)%'
     aws.s3_bucket: '%env(AWS_S3_BUCKET)%'
     einvoice.file_dir: '%kernel.project_dir%/var/einvoice'
 

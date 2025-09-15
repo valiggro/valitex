@@ -25,7 +25,7 @@ class AnafEfactura
             $item->expiresAfter(3600);
 
             $parameters = [
-                'cif' => $this->containerBag->get('anaf.cif'),
+                'cif' => $this->containerBag->get('company.code'),
                 'zile' => 45,
             ];
             $this->logger->info('Get messages from Anaf', $parameters);
